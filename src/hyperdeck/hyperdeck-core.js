@@ -110,7 +110,7 @@ function HyperdeckCore(config) {
     connected = false;
     socketConnected = false;
     if (pingTimerId !== null) {
-      clearTimeout(pingTimerId);
+      clearInterval(pingTimerId);
       pingTimerId = null;
     }
     notifier.emit('connectionStateChange', {connected: false});
