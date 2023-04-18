@@ -146,8 +146,9 @@ function HyperdeckCore(config) {
     }
 
     requestInProgress = true;
-    var request = pendingRequests.shift();
-    var requestCompletionPromise = requestCompletionPromises.shift();
+    var currRequestObj = pendingRequests.shift();
+    var request = currRequestObj.request;
+    var requestCompletionPromise = currRequestObj.requestCompletionPromise;
     var listenersRegistered = false;
 
     function onRequestCompleted() {
@@ -218,7 +219,6 @@ function HyperdeckCore(config) {
   var notifier = new events.EventEmitter();
 
   var pendingRequests = [];
-  var requestCompletionPromises = [];
   var requestInProgress = false;
 
   var connecting = true;
@@ -263,17 +263,18 @@ function HyperdeckCore(config) {
       throw new Error('Invalid request.');
     }
 
-    var completionPromise = new Promise(function(resolve, reject) {
-      requestCompletionPromises.push({
-        resolve: resolve,
-        reject: reject
+    return new Promise(function(resolve, reject) {
+      pendingRequests.push({
+        request: requestToProcess,
+        requestCompletionPromise: {
+          resolve: resolve,
+          reject: reject,
+        },
       });
-    });
 
-    pendingRequests.push(requestToProcess);
-    logger.info('Queueing request.', requestToProcess);
-    performNextRequest();
-    return completionPromise;
+      logger.info('Queueing request.', requestToProcess);
+      performNextRequest();
+    });
   };
 
   /**
